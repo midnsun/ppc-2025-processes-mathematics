@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <utility>
 #include <vector>
+#include <limits>
 
 namespace zagryadskov_a_matrix_sum {
     template <typename T>
@@ -37,6 +38,20 @@ namespace zagryadskov_a_matrix_sum {
         }
         const T& operator() (size_t i, size_t j) const {
             return data[j * m + i];
+        }
+        std::vector<T> getMaxByColumn() const {
+            int64_t j, i;
+            std::vector<T> res(n, std::numeric_limits<T>::min());
+            T tmp;
+            int tmpFlag;
+            for (j = 0; j < n; ++j) {
+                for (i = 0; i < m; ++i) {
+                    tmp = data[j * m + i];
+                    tmpFlag = tmp > res[j]
+                    res[j] = tmpFlag * tmp + (!tmpFlag) * res[j];
+                }
+            }
+            return res;
         }
     };
 } // namespace zagryadskov_a_matrix_sum
