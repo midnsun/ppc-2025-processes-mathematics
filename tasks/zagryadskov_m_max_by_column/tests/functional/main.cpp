@@ -29,7 +29,7 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
  protected:
   void SetUp() override {
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    std::string inFileName = params;
+    std::string inFileName = params + ".bin";
     std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
     std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
     if (!inFileStream.is_open()) {
@@ -84,7 +84,7 @@ TEST_P(ZagryadskovMRunFuncTestsMaxByColumn, GetMaxByColumn) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 1> kTestParam = {"mat1.bin"};
+const std::array<TestType, 1> kTestParam = {"mat1"};
 
 const auto kTestTasksList =
     std::tuple_cat(ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),

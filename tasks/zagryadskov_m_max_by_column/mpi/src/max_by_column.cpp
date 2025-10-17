@@ -33,7 +33,6 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   if ((std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable) {
     return false;
   }
-
   int world_size = 0, world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -87,26 +86,24 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
     return false;
   }
 
-  rows.resize(rows_size * m);
+  rows.resize(rows_size);
 
   if (world_rank == 0)
     res.resize(n, std::numeric_limits<T>::min());
   if (world_rank != 0)
     res.resize(rows_count, std::numeric_limits<T>::min());
-
   MPI_Scatter(mat.data(), rows_size, datatype, rows.data(), rows_size, datatype, 0, MPI_COMM_WORLD);
 
   size_t i, j;
   T tmp;
   int tmpFlag;
-  for (j = 0; j < size_t(rows_size); ++j) {
+  for (j = 0; j < size_t(rows_count); ++j) {
     for (i = 0; i < m; ++i) {
       tmp = rows[j * m + i];
       tmpFlag = tmp > res[j];
       res[j] = tmpFlag * tmp + (!tmpFlag) * res[j];
     }
   }
-
   MPI_Gather(res.data(), rows_count, datatype, res.data(), rows_count, datatype, 0, MPI_COMM_WORLD);
   if (world_rank == 0) {
     for (j = size_t(rows_count * world_size); j < n; ++j) {
