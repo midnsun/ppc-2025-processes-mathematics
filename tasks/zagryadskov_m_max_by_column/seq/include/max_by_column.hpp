@@ -4,12 +4,12 @@
 
 namespace zagryadskov_m_max_by_column {
 
-class ZagryadskovMTestMaxByColumnSEQ : public BaseTask {
+class ZagryadskovMMaxByColumnSEQ : public BaseTask {
  public:
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kSEQ;
   }
-  explicit ZagryadskovMTestMaxByColumnSEQ(const InType &in);
+  explicit ZagryadskovMMaxByColumnSEQ(const InType &in);
 
  private:
   bool ValidationImpl() override;

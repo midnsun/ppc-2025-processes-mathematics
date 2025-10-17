@@ -11,22 +11,22 @@
 
 namespace zagryadskov_m_max_by_column {
 
-ZagryadskovMTestMaxByColumnSEQ::ZagryadskovMTestMaxByColumnSEQ(const InType &in) {
+ZagryadskovMMaxByColumnSEQ::ZagryadskovMMaxByColumnSEQ(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
   GetInput() = in;
 }
 
-bool ZagryadskovMTestMaxByColumnSEQ::ValidationImpl() {
+bool ZagryadskovMMaxByColumnSEQ::ValidationImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
   return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && (GetOutput().size() == 0) && ifDividable;
 }
 
-bool ZagryadskovMTestMaxByColumnSEQ::PreProcessingImpl() {
+bool ZagryadskovMMaxByColumnSEQ::PreProcessingImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
   return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
 }
 
-bool ZagryadskovMTestMaxByColumnSEQ::RunImpl() {
+bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;  
   if ((std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable) {
     return false;
@@ -34,13 +34,13 @@ bool ZagryadskovMTestMaxByColumnSEQ::RunImpl() {
 
   const auto &n = std::get<0>(GetInput());
   const auto &mat = std::get<1>(GetInput());
-  int m = mat.size();
+  size_t m = mat.size();
   OutType &res = GetOutput();
   OutType rows;
   using T = std::decay_t<decltype(*mat.begin())>;
 
-  int64_t j, i;
-  std::vector<T> res(n, std::numeric_limits<T>::min());
+  size_t j, i;
+  res = std::vector<T>(n, std::numeric_limits<T>::min());
   T tmp;
   int tmpFlag;
   for (j = 0; j < n; ++j) {
@@ -54,7 +54,7 @@ bool ZagryadskovMTestMaxByColumnSEQ::RunImpl() {
   return GetOutput().size() > 0;
 }
 
-bool ZagryadskovMTestMaxByColumnSEQ::PostProcessingImpl() {
+bool ZagryadskovMMaxByColumnSEQ::PostProcessingImpl() {
   return GetOutput().size() > 0;
 }
 

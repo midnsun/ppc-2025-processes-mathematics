@@ -4,12 +4,12 @@
 
 namespace zagryadskov_m_max_by_column {
 
-class ZagryadskovMTestMaxByColumnMPI : public BaseTask {
+class ZagryadskovMMaxByColumnMPI : public BaseTask {
  public:
   static constexpr ppc::task::TypeOfTask GetStaticTypeOfTask() {
     return ppc::task::TypeOfTask::kMPI;
   }
-  explicit ZagryadskovMTestMaxByColumnMPI(const InType &in);
+  explicit ZagryadskovMMaxByColumnMPI(const InType &in);
 
  private:
   bool ValidationImpl() override;
