@@ -13,8 +13,8 @@ class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<In
 
   void SetUp() override {
     std::string inFileName = "mat1.bin";
-//    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
-    std::string abs_path = "../../data/mat1.bin";
+    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
+//    std::string abs_path = "../../data/mat1.bin";
     std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
     if (!inFileStream.is_open()) {
       throw std::runtime_error("Error opening file!\n");
@@ -64,7 +64,7 @@ TEST_P(ZagryadskovMRunPerfTestMaxByColumn, RunPerfModes) {
 }
 
 const auto kAllPerfTasks =
-    ppc::util::MakeAllPerfTasks<InType, NesterovATestTaskMPI, NesterovATestTaskSEQ>(PPC_SETTINGS_example_processes);
+    ppc::util::MakeAllPerfTasks<InType, ZagryadskovMMaxByColumnMPI, ZagryadskovMMaxByColumnSEQ>(PPC_SETTINGS_zagryadskov_m_max_by_column);
 
 const auto kGtestValues = ppc::util::TupleToGTestValues(kAllPerfTasks);
 
