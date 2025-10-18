@@ -9,12 +9,12 @@
 namespace zagryadskov_m_max_by_column {
 
 class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<InType, OutType> {
+  const int kCount_ = 10;
   InType input_data_{};
 
   void SetUp() override {
     std::string inFileName = "mat1.bin";
-//    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
-    std::string abs_path = "../../data/mat1.bin";
+    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName); // std::string abs_path = "../../data/mat1.bin";
     std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
     if (!inFileStream.is_open()) {
       throw std::runtime_error("Error opening file!\n");

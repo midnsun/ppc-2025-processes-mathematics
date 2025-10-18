@@ -44,9 +44,10 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   const auto &mat = std::get<1>(GetInput());
   size_t m = mat.size() / n;
   OutType &res = GetOutput();
-  OutType rows;
-  int rows_count = int(n) / world_size;
-  int rows_size = rows_count * int(m);
+  OutType local_res;
+  OutType columns;
+  int columns_count = int(n) / world_size;
+  int columns_size = columns_count * int(m);
   using T = std::decay_t<decltype(*mat.begin())>;
   MPI_Datatype datatype;
   if (std::is_same<T, char>::value) {
@@ -58,7 +59,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   else if (std::is_same<T, short>::value) {
     datatype = MPI_SHORT;
   }
-  else if (std::is_same<T, unsigned char>::value) {
+  else if (std::is_same<T, unsigned short>::value) {
     datatype = MPI_UNSIGNED_SHORT;
   }
   else if (std::is_same<T, int>::value) {
@@ -86,27 +87,25 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
     return false;
   }
 
-  rows.resize(rows_size);
+  columns.resize(columns_size);
 
-  if (world_rank == 0)
-    res.resize(n, std::numeric_limits<T>::min());
-  if (world_rank != 0)
-    res.resize(rows_count, std::numeric_limits<T>::min());
-  MPI_Scatter(mat.data(), rows_size, datatype, rows.data(), rows_size, datatype, 0, MPI_COMM_WORLD);
+  res.resize(n, std::numeric_limits<T>::lowest());
+  local_res.resize(columns_count, std::numeric_limits<T>::lowest());
+  MPI_Scatter(mat.data(), columns_size, datatype, columns.data(), columns_size, datatype, 0, MPI_COMM_WORLD);
 
   size_t i, j;
   T tmp;
   int tmpFlag;
-  for (j = 0; j < size_t(rows_count); ++j) {
+  for (j = 0; j < size_t(columns_count); ++j) {
     for (i = 0; i < m; ++i) {
-      tmp = rows[j * m + i];
-      tmpFlag = tmp > res[j];
-      res[j] = tmpFlag * tmp + (!tmpFlag) * res[j];
+      tmp = columns[j * m + i];
+      tmpFlag = tmp > local_res[j];
+      local_res[j] = tmpFlag * tmp + (!tmpFlag) * local_res[j];
     }
   }
-  MPI_Gather(res.data(), rows_count, datatype, res.data(), rows_count, datatype, 0, MPI_COMM_WORLD);
+  MPI_Gather(local_res.data(), columns_count, datatype, res.data(), columns_count, datatype, 0, MPI_COMM_WORLD);
   if (world_rank == 0) {
-    for (j = size_t(rows_count * world_size); j < n; ++j) {
+    for (j = size_t(columns_count * world_size); j < n; ++j) {
       for (i = 0; i < m; ++i) {
         tmp = mat[j * m + i];
         tmpFlag = tmp > res[j];
@@ -114,7 +113,8 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
       }   
     }
   }
-
+  
+  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   return GetOutput().size() > 0;
 }

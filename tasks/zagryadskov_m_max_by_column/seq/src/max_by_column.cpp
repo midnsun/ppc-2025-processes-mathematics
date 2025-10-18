@@ -34,13 +34,13 @@ bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
 
   const auto &n = std::get<0>(GetInput());
   const auto &mat = std::get<1>(GetInput());
-  size_t m = mat.size();
+  size_t m = mat.size() / n;
   OutType &res = GetOutput();
   OutType rows;
   using T = std::decay_t<decltype(*mat.begin())>;
 
   size_t j, i;
-  res = std::vector<T>(n, std::numeric_limits<T>::min());
+  res = std::vector<T>(n, std::numeric_limits<T>::lowest());
   T tmp;
   int tmpFlag;
   for (j = 0; j < n; ++j) {
