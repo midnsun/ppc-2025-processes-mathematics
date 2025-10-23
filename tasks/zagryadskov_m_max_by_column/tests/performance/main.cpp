@@ -8,7 +8,6 @@
 namespace zagryadskov_m_max_by_column {
 
 class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  const int kCount_ = 10;
   InType input_data_{};
 
   void SetUp() override {
