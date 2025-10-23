@@ -6,6 +6,7 @@ import subprocess
 import platform
 from pathlib import Path
 
+
 def init_cmd_args():
     import argparse
 
