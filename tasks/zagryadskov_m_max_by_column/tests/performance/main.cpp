@@ -4,7 +4,6 @@
 #include "zagryadskov_m_max_by_column/mpi/include/max_by_column.hpp"
 #include "zagryadskov_m_max_by_column/seq/include/max_by_column.hpp"
 #include "util/include/perf_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace zagryadskov_m_max_by_column {
 
