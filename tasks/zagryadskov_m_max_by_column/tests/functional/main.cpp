@@ -4,19 +4,19 @@
 #include <array>
 #include <cstddef>
 #include <cstdint>
+#include <fstream>
 #include <numeric>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
-#include <fstream>
 
+#include "util/include/func_test_util.hpp"
+#include "util/include/util.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"
 #include "zagryadskov_m_max_by_column/mpi/include/max_by_column.hpp"
 #include "zagryadskov_m_max_by_column/seq/include/max_by_column.hpp"
-#include "util/include/func_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace zagryadskov_m_max_by_column {
 
@@ -37,14 +37,14 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
     }
     size_t m;
     size_t n;
-    inFileStream.read(reinterpret_cast<char*>(&m), sizeof(size_t));
-    inFileStream.read(reinterpret_cast<char*>(&n), sizeof(size_t));
+    inFileStream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
+    inFileStream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
     std::get<0>(input_data_) = n;
     auto &mat = std::get<1>(input_data_);
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
-    
-    inFileStream.read(reinterpret_cast<char*>(mat.data()), sizeof(T)*m*n);
+
+    inFileStream.read(reinterpret_cast<char *>(mat.data()), sizeof(T) * m * n);
 
     inFileStream.close();
   }
@@ -55,16 +55,16 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
     size_t m = std::get<1>(input_data_).size() / n;
     auto &mat = std::get<1>(input_data_);
     if (output_data.size() != n) {
-        res = false;
-        return res;
+      res = false;
+      return res;
     }
-    
+
     for (size_t j = 0; j < n; ++j) {
-        for (size_t i = 0; i < m; ++i) {
-            if (output_data[j] < mat[j * m + i]) {
-                res = false;
-            }
+      for (size_t i = 0; i < m; ++i) {
+        if (output_data[j] < mat[j * m + i]) {
+          res = false;
         }
+      }
     }
 
     return res;
@@ -86,9 +86,9 @@ TEST_P(ZagryadskovMRunFuncTestsMaxByColumn, GetMaxByColumn) {
 
 const std::array<TestType, 2> kTestParam = {std::string("mat1"), std::string("mat2")};
 
-const auto kTestTasksList =
-    std::tuple_cat(ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),
-                   ppc::util::AddFuncTask<ZagryadskovMMaxByColumnSEQ, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column));
+const auto kTestTasksList = std::tuple_cat(
+    ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),
+    ppc::util::AddFuncTask<ZagryadskovMMaxByColumnSEQ, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
@@ -98,4 +98,4 @@ INSTANTIATE_TEST_SUITE_P(MaxByColumnTests, ZagryadskovMRunFuncTestsMaxByColumn, 
 
 }  // namespace
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column

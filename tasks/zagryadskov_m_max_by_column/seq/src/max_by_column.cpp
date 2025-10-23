@@ -1,13 +1,13 @@
 #include "zagryadskov_m_max_by_column/seq/include/max_by_column.hpp"
 
-#include <numeric>
 #include <algorithm>
-#include <utility>
 #include <limits>
+#include <numeric>
 #include <type_traits>
+#include <utility>
 
-#include "zagryadskov_m_max_by_column/common/include/common.hpp"
 #include "util/include/util.hpp"
+#include "zagryadskov_m_max_by_column/common/include/common.hpp"
 
 namespace zagryadskov_m_max_by_column {
 
@@ -18,7 +18,8 @@ ZagryadskovMMaxByColumnSEQ::ZagryadskovMMaxByColumnSEQ(const InType &in) {
 
 bool ZagryadskovMMaxByColumnSEQ::ValidationImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && (GetOutput().size() == 0) && ifDividable;
+  return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && (GetOutput().size() == 0) &&
+         ifDividable;
 }
 
 bool ZagryadskovMMaxByColumnSEQ::PreProcessingImpl() {
@@ -27,7 +28,7 @@ bool ZagryadskovMMaxByColumnSEQ::PreProcessingImpl() {
 }
 
 bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
-  bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;  
+  bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
   if ((std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable) {
     return false;
   }
@@ -58,4 +59,4 @@ bool ZagryadskovMMaxByColumnSEQ::PostProcessingImpl() {
   return GetOutput().size() > 0;
 }
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column

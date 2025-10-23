@@ -18,4 +18,4 @@ class ZagryadskovMMaxByColumnSEQ : public BaseTask {
   bool PostProcessingImpl() override;
 };
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column

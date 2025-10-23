@@ -13,4 +13,4 @@ using OutType = std::vector<double>;
 using TestType = std::string;
 using BaseTask = ppc::task::Task<InType, OutType>;
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column
