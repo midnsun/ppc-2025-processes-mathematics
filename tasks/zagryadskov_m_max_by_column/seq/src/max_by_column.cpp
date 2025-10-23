@@ -49,7 +49,7 @@ bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
       tmpFlag = tmp > res[j];
       res[j] = tmpFlag * tmp + (!tmpFlag) * res[j];
     }
-}
+  }
 
   return GetOutput().size() > 0;
 }
