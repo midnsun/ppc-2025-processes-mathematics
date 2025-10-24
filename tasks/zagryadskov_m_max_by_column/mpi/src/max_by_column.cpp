@@ -40,7 +40,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
   bool testData = (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
   std::cout << "Run1: " << ifDividable << " " << testData << std::endl;
-  if (testData) {
+  if (!testData) {
     return false;
   }
 
@@ -48,6 +48,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
   const int num_threads = ppc::util::GetNumThreads();
+  std::cout << "Run1,5 " << num_threads << " " << world_size << std::endl;
   if (num_threads != world_size) {
     return false;
   }
