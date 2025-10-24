@@ -19,10 +19,15 @@ ZagryadskovMMaxByColumnMPI::ZagryadskovMMaxByColumnMPI(const InType &in) {
 }
 
 bool ZagryadskovMMaxByColumnMPI::ValidationImpl() {
-  std::cout << "Validation: " << std::get<0>(GetInput()) << " " << std::get<1>(GetInput()).size() << std::endl;
+  std::cout << "Validation1: " << std::get<0>(GetInput()) << " " << std::get<1>(GetInput()).size() << std::endl;
+  std::cout << "Validation2: " << std::get<1>(GetInput()).size() % std::get<0>(GetInput()) << " "
+            << GetOutput().size() ==
+      0 << std::endl;
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && (GetOutput().size() == 0) &&
-         ifDividable;
+  bool res =
+      (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && (GetOutput().size() == 0) && ifDividable;
+  std::cout << "Validation3: " << ifDividable << " " << res << std::endl;
+  return res;
 }
 
 bool ZagryadskovMMaxByColumnMPI::PreProcessingImpl() {
