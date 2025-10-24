@@ -50,7 +50,6 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
-    return true; //
     bool res = true;
     size_t n = std::get<0>(input_data_);
     size_t m = std::get<1>(input_data_).size() / n;
