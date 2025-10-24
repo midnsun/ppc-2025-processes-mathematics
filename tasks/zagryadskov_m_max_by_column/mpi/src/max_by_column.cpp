@@ -31,14 +31,19 @@ bool ZagryadskovMMaxByColumnMPI::ValidationImpl() {
 
 bool ZagryadskovMMaxByColumnMPI::PreProcessingImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  return (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
+  bool res = (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
+  std::cout << "Pre Processing: " << ifDividable << " " << res << std::endl;
+  return res;
 }
 
 bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  if ((std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable) {
+  bool testData = (std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable;
+  std::cout << "Run1: " << ifDividable << " " << testData << std::endl;
+  if (testData) {
     return false;
   }
+
   int world_size = 0, world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -111,11 +116,13 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
 
   MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
+  std::cout << "Run2: " << GetOutput().size() << " " << (GetOutput().size() > 0) << std::endl;
   return GetOutput().size() > 0;
 }
 
 bool ZagryadskovMMaxByColumnMPI::PostProcessingImpl() {
-  std::cout << "Post processing: " << std::get<0>(GetInput()) << " " << std::get<1>(GetInput()).size() << std::endl;
+  std::cout << "Post processing1: " << std::get<0>(GetInput()) << " " << std::get<1>(GetInput()).size() << std::endl;
+  std::cout << "Post processing2: " << GetOutput().size() << " " << (GetOutput().size() > 0) << std::endl;
   return GetOutput().size() > 0;
 }
 
