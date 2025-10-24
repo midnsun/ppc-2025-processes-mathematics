@@ -90,9 +90,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
 
   columns.resize(columns_size);
 
-  if (world_rank == 0) {
-    res.resize(n, std::numeric_limits<T>::lowest());
-  }
+  res.resize(n, std::numeric_limits<T>::lowest());
   local_res.resize(columns_count, std::numeric_limits<T>::lowest());
   MPI_Scatter(mat.data(), columns_size, datatype, columns.data(), columns_size, datatype, 0, MPI_COMM_WORLD);
 
@@ -117,7 +115,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
     }
   }
 
-  //  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
+  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   std::cout << "Run2: " << GetOutput().size() << " " << (GetOutput().size() > 0) << std::endl;
   return GetOutput().size() > 0;
