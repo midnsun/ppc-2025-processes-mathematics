@@ -38,7 +38,7 @@ bool ZagryadskovMMaxByColumnMPI::PreProcessingImpl() {
 
 bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  bool testData = (std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).size() == 0) || !ifDividable;
+  bool testData = (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
   std::cout << "Run1: " << ifDividable << " " << testData << std::endl;
   if (testData) {
     return false;
@@ -89,7 +89,9 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
 
   columns.resize(columns_size);
 
-  res.resize(n, std::numeric_limits<T>::lowest());
+  if (world_rank == 0) {
+    res.resize(n, std::numeric_limits<T>::lowest());
+  }
   local_res.resize(columns_count, std::numeric_limits<T>::lowest());
   MPI_Scatter(mat.data(), columns_size, datatype, columns.data(), columns_size, datatype, 0, MPI_COMM_WORLD);
 
@@ -114,7 +116,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
     }
   }
 
-  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
+  //  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
   MPI_Barrier(MPI_COMM_WORLD);
   std::cout << "Run2: " << GetOutput().size() << " " << (GetOutput().size() > 0) << std::endl;
   return GetOutput().size() > 0;
