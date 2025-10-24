@@ -47,11 +47,11 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   int world_size = 0, world_rank = 0;
   MPI_Comm_size(MPI_COMM_WORLD, &world_size);
   MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  const int num_threads = ppc::util::GetNumThreads();
-  std::cout << "Run1,5 " << num_threads << " " << world_size << std::endl;
-  if (num_threads != world_size) {
-    return false;
-  }
+  // const int num_threads = ppc::util::GetNumThreads();
+  // std::cout << "Run1,5 " << num_threads << " " << world_size << std::endl;
+  // if (num_threads != world_size) {
+  //   return false;
+  // }
   const auto &n = std::get<0>(GetInput());
   const auto &mat = std::get<1>(GetInput());
   size_t m = mat.size() / n;
