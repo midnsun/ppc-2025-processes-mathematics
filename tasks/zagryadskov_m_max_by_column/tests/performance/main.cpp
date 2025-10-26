@@ -1,11 +1,11 @@
 #include <gtest/gtest.h>
 
 #include <fstream>
+#include <ios>
 #include <iosfwd>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
-#include <ios>
 
 #include "util/include/perf_test_util.hpp"
 #include "util/include/util.hpp"

@@ -2,8 +2,8 @@
 
 #include <mpi.h>
 
-#include <type_traits>
 #include <cstdint>
+#include <type_traits>
 
 #include "task/include/task.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"

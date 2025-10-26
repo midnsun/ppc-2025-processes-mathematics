@@ -3,13 +3,13 @@
 #include <array>
 #include <cstddef>
 #include <fstream>
+#include <ios>
 #include <iosfwd>
 #include <stdexcept>
 #include <string>
 #include <tuple>
 #include <type_traits>
 #include <vector>
-#include <ios>
 
 #include "util/include/func_test_util.hpp"
 #include "util/include/util.hpp"
