@@ -9,6 +9,7 @@
 #include <tuple>
 #include <type_traits>
 #include <vector>
+#include <ios>
 
 #include "util/include/func_test_util.hpp"
 #include "util/include/util.hpp"
@@ -42,7 +43,7 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
 
-    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T)) * m * n);
+    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T) * m * n));
 
     in_file_stream.close();
   }

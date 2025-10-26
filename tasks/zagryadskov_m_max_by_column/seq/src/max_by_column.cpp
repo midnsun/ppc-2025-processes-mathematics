@@ -38,7 +38,7 @@ bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
 
   size_t j = 0;
   size_t i = 0;
-  res = std::vector<T>(n, std::numeric_limits<T>::lowest());
+  res.resize(n, std::numeric_limits<T>::lowest());
   T tmp = std::numeric_limits<T>::lowest();
   bool tmp_flag = false;
   for (j = 0; j < n; ++j) {

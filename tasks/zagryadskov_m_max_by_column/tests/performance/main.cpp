@@ -5,6 +5,7 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+#include <ios>
 
 #include "util/include/perf_test_util.hpp"
 #include "util/include/util.hpp"
@@ -35,7 +36,7 @@ class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<In
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
 
-    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T)) * m * n);
+    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T) * m * n));
 
     in_file_stream.close();
   }
@@ -52,7 +53,7 @@ class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<In
 
     for (size_t j = 0; j < n; ++j) {
       for (size_t i = 0; i < m; ++i) {
-        if (output_data[j] < mat[j * m + i]) {
+        if (output_data[j] < mat[(j * m) + i]) {
           res = false;
         }
       }
