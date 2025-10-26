@@ -69,7 +69,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
       for (i = 0; i < m; ++i) {
         tmp = columns[(j * m) + i];
         tmp_flag = tmp > local_res[j];
-        local_res[j] = static_cast<T>(tmp_flag) * tmp + static_cast<T>(!tmp_flag) * local_res[j];
+        local_res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * local_res[j]);
       }
     }
     MPI_Gather(local_res.data(), columns_count, datatype, res.data(), columns_count, datatype, 0, MPI_COMM_WORLD);
@@ -79,7 +79,7 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
       for (i = 0; i < m; ++i) {
         tmp = mat[(j * m) + i];
         tmp_flag = tmp > res[j];
-        res[j] = static_cast<T>(tmp_flag) * tmp + static_cast<T>(!tmp_flag) * res[j];
+        res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * res[j]);
       }
     }
   }

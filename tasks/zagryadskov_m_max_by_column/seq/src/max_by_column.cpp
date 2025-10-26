@@ -45,7 +45,7 @@ bool ZagryadskovMMaxByColumnSEQ::RunImpl() {
     for (i = 0; i < m; ++i) {
       tmp = mat[(j * m) + i];
       tmp_flag = tmp > res[j];
-      res[j] = static_cast<T>(tmp_flag) * tmp + static_cast<T>(!tmp_flag) * res[j];
+      res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * res[j]);
     }
   }
 
