@@ -1,15 +1,13 @@
 #include <gtest/gtest.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
 #include <fstream>
-#include <numeric>
+#include <iosfwd>
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
+#include <type_traits>
 #include <vector>
 
 #include "util/include/func_test_util.hpp"
@@ -29,24 +27,24 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
  protected:
   void SetUp() override {
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    std::string inFileName = params + ".bin";
-    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
-    std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
-    if (!inFileStream.is_open()) {
+    std::string in_file_name = params + ".bin";
+    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, in_file_name);
+    std::ifstream in_file_stream(abs_path, std::ios::in | std::ios::binary);
+    if (!in_file_stream.is_open()) {
       throw std::runtime_error("Error opening file!\n");
     }
-    size_t m;
-    size_t n;
-    inFileStream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
-    inFileStream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
+    size_t m = 0;
+    size_t n = 0;
+    in_file_stream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
+    in_file_stream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
     std::get<0>(input_data_) = n;
     auto &mat = std::get<1>(input_data_);
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
 
-    inFileStream.read(reinterpret_cast<char *>(mat.data()), sizeof(T) * m * n);
+    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T)) * m * n);
 
-    inFileStream.close();
+    in_file_stream.close();
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
@@ -61,7 +59,7 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
 
     for (size_t j = 0; j < n; ++j) {
       for (size_t i = 0; i < m; ++i) {
-        if (output_data[j] < mat[j * m + i]) {
+        if (output_data[j] < mat[(j * m) + i]) {
           res = false;
         }
       }

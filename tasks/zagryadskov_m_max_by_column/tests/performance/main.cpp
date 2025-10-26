@@ -1,6 +1,13 @@
 #include <gtest/gtest.h>
 
+#include <fstream>
+#include <iosfwd>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
+
 #include "util/include/perf_test_util.hpp"
+#include "util/include/util.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"
 #include "zagryadskov_m_max_by_column/mpi/include/max_by_column.hpp"
 #include "zagryadskov_m_max_by_column/seq/include/max_by_column.hpp"
@@ -8,28 +15,29 @@
 namespace zagryadskov_m_max_by_column {
 
 class ZagryadskovMRunPerfTestMaxByColumn : public ppc::util::BaseRunPerfTests<InType, OutType> {
-  InType input_data_{};
+  InType input_data_;
 
   void SetUp() override {
-    std::string inFileName = "mat1.bin";
-    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column,
-                                                          inFileName);  // std::string abs_path = "../../data/mat1.bin";
-    std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
-    if (!inFileStream.is_open()) {
+    std::string in_file_name = "mat1.bin";
+    std::string abs_path =
+        ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column,
+                                       in_file_name);  // std::string abs_path = "../../data/mat1.bin";
+    std::ifstream in_file_stream(abs_path, std::ios::in | std::ios::binary);
+    if (!in_file_stream.is_open()) {
       throw std::runtime_error("Error opening file!\n");
     }
-    size_t m;
-    size_t n;
-    inFileStream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
-    inFileStream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
+    size_t m = 0;
+    size_t n = 0;
+    in_file_stream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
+    in_file_stream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
     std::get<0>(input_data_) = n;
     auto &mat = std::get<1>(input_data_);
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
 
-    inFileStream.read(reinterpret_cast<char *>(mat.data()), sizeof(T) * m * n);
+    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T)) * m * n);
 
-    inFileStream.close();
+    in_file_stream.close();
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
