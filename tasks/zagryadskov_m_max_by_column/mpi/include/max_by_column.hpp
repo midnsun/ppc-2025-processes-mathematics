@@ -50,6 +50,7 @@ class ZagryadskovMMaxByColumnMPI : public BaseTask {
     } else {
       datatype = MPI_DATATYPE_NULL;
     }
+
     return datatype;
   }
 };
