@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 
+#include <cstddef>
 #include <fstream>
 #include <ios>
 #include <iosfwd>
