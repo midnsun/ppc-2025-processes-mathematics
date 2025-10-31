@@ -83,7 +83,7 @@ TEST_P(ZagryadskovMRunFuncTestsMaxByColumn, GetMaxByColumn) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 1> kTestParam = {std::string("mat1")};
+const std::array<TestType, 2> kTestParam = {std::string("mat1"), std::string("mat2")};
 
 const auto kTestTasksList = std::tuple_cat(
     ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),
