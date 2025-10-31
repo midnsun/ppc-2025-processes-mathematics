@@ -1,22 +1,21 @@
 #include <gtest/gtest.h>
 
-#include <algorithm>
 #include <array>
 #include <cstddef>
-#include <cstdint>
-#include <numeric>
+#include <fstream>
+#include <ios>
+#include <iosfwd>
 #include <stdexcept>
 #include <string>
 #include <tuple>
-#include <utility>
+#include <type_traits>
 #include <vector>
-#include <fstream>
 
+#include "util/include/func_test_util.hpp"
+#include "util/include/util.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"
 #include "zagryadskov_m_max_by_column/mpi/include/max_by_column.hpp"
 #include "zagryadskov_m_max_by_column/seq/include/max_by_column.hpp"
-#include "util/include/func_test_util.hpp"
-#include "util/include/util.hpp"
 
 namespace zagryadskov_m_max_by_column {
 
@@ -29,24 +28,24 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
  protected:
   void SetUp() override {
     TestType params = std::get<static_cast<std::size_t>(ppc::util::GTestParamIndex::kTestParams)>(GetParam());
-    std::string inFileName = params;
-    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, inFileName);
-    std::ifstream inFileStream(abs_path, std::ios::in | std::ios::binary);
-    if (!inFileStream.is_open()) {
+    std::string in_file_name = params + ".bin";
+    std::string abs_path = ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_max_by_column, in_file_name);
+    std::ifstream in_file_stream(abs_path, std::ios::in | std::ios::binary);
+    if (!in_file_stream.is_open()) {
       throw std::runtime_error("Error opening file!\n");
     }
-    size_t m;
-    size_t n;
-    inFileStream.read(reinterpret_cast<char*>(&m), sizeof(size_t));
-    inFileStream.read(reinterpret_cast<char*>(&n), sizeof(size_t));
+    size_t m = 0;
+    size_t n = 0;
+    in_file_stream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
+    in_file_stream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
     std::get<0>(input_data_) = n;
     auto &mat = std::get<1>(input_data_);
     mat.resize(m * n);
     using T = std::decay_t<decltype(*mat.begin())>;
-    
-    inFileStream.read(reinterpret_cast<char*>(mat.data()), sizeof(T)*m*n);
 
-    inFileStream.close();
+    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T) * m * n));
+
+    in_file_stream.close();
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
@@ -55,16 +54,16 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
     size_t m = std::get<1>(input_data_).size() / n;
     auto &mat = std::get<1>(input_data_);
     if (output_data.size() != n) {
-        res = false;
-        return res;
+      res = false;
+      return res;
     }
-    
+
     for (size_t j = 0; j < n; ++j) {
-        for (size_t i = 0; i < m; ++i) {
-            if (output_data[j] < mat[j * m + i]) {
-                res = false;
-            }
+      for (size_t i = 0; i < m; ++i) {
+        if (output_data[j] < mat[(j * m) + i]) {
+          res = false;
         }
+      }
     }
 
     return res;
@@ -84,11 +83,11 @@ TEST_P(ZagryadskovMRunFuncTestsMaxByColumn, GetMaxByColumn) {
   ExecuteTest(GetParam());
 }
 
-const std::array<TestType, 1> kTestParam = {"mat1.bin"};
+const std::array<TestType, 2> kTestParam = {std::string("mat1"), std::string("mat2")};
 
-const auto kTestTasksList =
-    std::tuple_cat(ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),
-                   ppc::util::AddFuncTask<ZagryadskovMMaxByColumnSEQ, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column));
+const auto kTestTasksList = std::tuple_cat(
+    ppc::util::AddFuncTask<ZagryadskovMMaxByColumnMPI, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column),
+    ppc::util::AddFuncTask<ZagryadskovMMaxByColumnSEQ, InType>(kTestParam, PPC_SETTINGS_zagryadskov_m_max_by_column));
 
 const auto kGtestValues = ppc::util::ExpandToValues(kTestTasksList);
 
@@ -98,4 +97,4 @@ INSTANTIATE_TEST_SUITE_P(MaxByColumnTests, ZagryadskovMRunFuncTestsMaxByColumn, 
 
 }  // namespace
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column

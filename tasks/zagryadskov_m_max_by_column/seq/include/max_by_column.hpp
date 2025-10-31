@@ -1,5 +1,6 @@
 #pragma once
 
+#include "task/include/task.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"
 
 namespace zagryadskov_m_max_by_column {
@@ -18,4 +19,4 @@ class ZagryadskovMMaxByColumnSEQ : public BaseTask {
   bool PostProcessingImpl() override;
 };
 
-}  // zagryadskov_m_max_by_column
+}  // namespace zagryadskov_m_max_by_column
