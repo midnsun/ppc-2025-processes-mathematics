@@ -48,7 +48,9 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   OutType columns;
   std::vector<int> sendcounts(world_size);
   std::vector<int> displs(world_size);
-  if (!displs.empty()) displs[0] = 0;
+  if (!displs.empty()) {
+    displs[0] = 0;
+  }
   int columns_count = static_cast<int>(n) / world_size;
   using T = std::decay_t<decltype(*mat.begin())>;
   MPI_Datatype datatype = GetMpiType<T>();
