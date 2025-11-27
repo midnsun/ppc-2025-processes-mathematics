@@ -2,8 +2,12 @@
 
 #include <mpi.h>
 
+<<<<<<< HEAD
 #include <cstdint>
 #include <type_traits>
+=======
+#include <vector>
+>>>>>>> upstream/master
 
 #include "task/include/task.hpp"
 #include "zagryadskov_m_max_by_column/common/include/common.hpp"
@@ -22,6 +26,7 @@ class ZagryadskovMMaxByColumnMPI : public BaseTask {
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
+<<<<<<< HEAD
 
   template <typename T>
   MPI_Datatype GetMpiType() {
@@ -50,6 +55,10 @@ class ZagryadskovMMaxByColumnMPI : public BaseTask {
 
     return datatype;
   }
+=======
+  static bool SecondPhase(int m, int n, int world_size, int world_rank, std::vector<int> &sendcounts,
+                          std::vector<int> &displs, OutType &res, OutType &local_res, MPI_Datatype datatype);
+>>>>>>> upstream/master
 };
 
 }  // namespace zagryadskov_m_max_by_column

@@ -74,10 +74,17 @@ result[j] = max_j
 
 Параллельная версия использует **распределение столбцов** между MPI-процессами.  
 
+<<<<<<< HEAD
 1. Корневой процесс (`rank 0`) распределяет блоки столбцов между процессами через `MPI_Scatter`.  
 2. Каждый процесс вычисляет локальные максимумы по выделенным столбцам.  
 3. Локальные результаты собираются на корневом процессе с помощью `MPI_Gather`.  
 4. Корневой процесс обрабатывает оставшиеся столбцы (если их число не делится на количество процессов).  
+=======
+1. Корневой процесс (`rank 0`) вычисляет количество столбцов для обработки каждым процессом.
+2. С корневого процесса блоки столбцов распределяются между процессами через `MPI_Scatterv`.  
+3. Каждый процесс вычисляет локальные максимумы по выделенным столбцам.  
+4. Локальные результаты собираются на корневом процессе с помощью `MPI_Gatherv`.  
+>>>>>>> upstream/master
 5. Результат рассылается всем процессам через `MPI_Bcast` для обеспечения корректного прохождения функциональных тестов всеми процессами.  
 
 Таким образом, каждый процесс работает с собственной частью данных, что позволяет достичь ускорения при достаточно больших размерах матриц.
@@ -92,7 +99,11 @@ result[j] = max_j
 - первый элемент — количество столбцов `n`,  
 - второй — вектор значений матрицы, хранящийся по столбцам.  
 
+<<<<<<< HEAD
 MPI-реализация автоматически определяет используемый тип данных (`MPI_DOUBLE`, `MPI_INT` и т.д.), производит рассылку данных и сбор частичных результатов. Используется синхронизация через `MPI_Barrier`.
+=======
+MPI-реализация опеределяет количество столбцов для каждого процесса, производит рассылку данных и сбор частичных результатов. Используется синхронизация через `MPI_Barrier`.
+>>>>>>> upstream/master
 
 ---
 
@@ -119,7 +130,11 @@ MPI-реализация автоматически определяет исп�
 
 ## Выводы из результатов
 
+<<<<<<< HEAD
 Реализация с использованием MPI показывает ускорение примерно в **2.8 раза** по сравнению с последовательной версией.  
+=======
+Реализация с использованием MPI показывает ускорение примерно в **2.8 раза** по сравнению с последовательной версией запуске на локальном устройстве.  
+>>>>>>> upstream/master
 Это демонстрирует эффективность параллельного подхода при работе с крупными матрицами.  
 При увеличении числа процессов можно ожидать дальнейшего сокращения времени выполнения, однако при малых размерах матриц затраты на коммуникацию могут нивелировать прирост производительности.
 
@@ -143,6 +158,7 @@ MPI-реализация автоматически определяет исп�
 ### Параллельная реализация
 
 ```cpp
+<<<<<<< HEAD
 bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
   bool testData = (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
@@ -221,3 +237,111 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   return GetOutput().size() > 0;
 }
 ```
+=======
+int world_size = 0;
+  int world_rank = 0;
+  int err_code = 0;
+  err_code = MPI_Comm_size(MPI_COMM_WORLD, &world_size);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Comm_size failed");
+  }
+  err_code = MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Comm_rank failed");
+  }
+  int n = 0;
+  const void *mat_data = nullptr;
+  int m = 0;
+  OutType &res = GetOutput();
+  OutType local_res;
+  OutType columns;
+  std::vector<int> sendcounts(world_size);
+  std::vector<int> displs(world_size);
+  if (!displs.empty()) {
+    displs[0] = 0;
+  }
+
+  if (world_rank == 0) {
+    n = static_cast<int>(std::get<0>(GetInput()));
+    const auto &mat = std::get<1>(GetInput());
+    m = static_cast<int>(mat.size()) / n;
+    mat_data = reinterpret_cast<const void *>(mat.data());
+  }
+  err_code = MPI_Bcast(&n, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Bcast failed");
+  }
+  err_code = MPI_Bcast(&m, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Bcast failed");
+  }
+
+  int columns_count = n / world_size;
+  using T = double;  // datatype cannot be sent to other processes
+  MPI_Datatype datatype = MPI_DOUBLE;
+
+  int i = 0;
+  int j = 0;
+  int r = 0;
+  T tmp = std::numeric_limits<T>::lowest();
+  bool tmp_flag = false;
+
+  if (world_rank == 0) {
+    res.assign(n, std::numeric_limits<T>::lowest());
+  }
+  for (r = 0; r < world_size; ++r) {
+    sendcounts[r] = (columns_count + static_cast<int>(r < (n % world_size))) * m;
+    if (r > 0) {
+      displs[r] = displs[r - 1] + sendcounts[r - 1];
+    }
+  }
+
+  local_res.assign(static_cast<size_t>(sendcounts[world_rank] / m), std::numeric_limits<T>::lowest());
+  columns.resize(sendcounts[world_rank]);
+  err_code = MPI_Scatterv(mat_data, sendcounts.data(), displs.data(), datatype, columns.data(), sendcounts[world_rank],
+                          datatype, 0, MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Scatterv failed");
+  }
+  for (j = 0; std::cmp_less(j, local_res.size()); ++j) {
+    for (i = 0; i < m; ++i) {
+      tmp = columns[(j * m) + i];
+      tmp_flag = tmp > local_res[j];
+      local_res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * local_res[j]);
+    }
+  }
+
+  for (r = 0; r < world_size; ++r) {
+    sendcounts[r] /= m;
+    if (r > 0) {
+      displs[r] = displs[r - 1] + sendcounts[r - 1];
+    }
+  }
+
+  err_code = MPI_Gatherv(local_res.data(), static_cast<int>(local_res.size()), datatype, res.data(), sendcounts.data(),
+                         displs.data(), datatype, 0, MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Gatherv failed");
+  }
+  if (world_rank != 0) {
+    res.resize(n);
+  }
+  // sequential version requires not to call MPI funcs
+  err_code = MPI_Bcast(res.data(), static_cast<int>(res.size()), datatype, 0, MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Bcast failed");
+  }
+
+  bool result = false;
+  if (world_rank == 0) {
+    result = !res.empty();
+  } else {
+    result = true;
+  }
+  err_code = MPI_Barrier(MPI_COMM_WORLD);
+  if (err_code != MPI_SUCCESS) {
+    throw std::runtime_error("MPI_Barrier failed");
+  }
+  return result;
+```
+>>>>>>> upstream/master
