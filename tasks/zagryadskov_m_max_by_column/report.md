@@ -74,17 +74,10 @@ result[j] = max_j
 
 Параллельная версия использует **распределение столбцов** между MPI-процессами.  
 
-<<<<<<< HEAD
-1. Корневой процесс (`rank 0`) распределяет блоки столбцов между процессами через `MPI_Scatter`.  
-2. Каждый процесс вычисляет локальные максимумы по выделенным столбцам.  
-3. Локальные результаты собираются на корневом процессе с помощью `MPI_Gather`.  
-4. Корневой процесс обрабатывает оставшиеся столбцы (если их число не делится на количество процессов).  
-=======
 1. Корневой процесс (`rank 0`) вычисляет количество столбцов для обработки каждым процессом.
 2. С корневого процесса блоки столбцов распределяются между процессами через `MPI_Scatterv`.  
 3. Каждый процесс вычисляет локальные максимумы по выделенным столбцам.  
 4. Локальные результаты собираются на корневом процессе с помощью `MPI_Gatherv`.  
->>>>>>> upstream/master
 5. Результат рассылается всем процессам через `MPI_Bcast` для обеспечения корректного прохождения функциональных тестов всеми процессами.  
 
 Таким образом, каждый процесс работает с собственной частью данных, что позволяет достичь ускорения при достаточно больших размерах матриц.
@@ -99,11 +92,7 @@ result[j] = max_j
 - первый элемент — количество столбцов `n`,  
 - второй — вектор значений матрицы, хранящийся по столбцам.  
 
-<<<<<<< HEAD
-MPI-реализация автоматически определяет используемый тип данных (`MPI_DOUBLE`, `MPI_INT` и т.д.), производит рассылку данных и сбор частичных результатов. Используется синхронизация через `MPI_Barrier`.
-=======
 MPI-реализация опеределяет количество столбцов для каждого процесса, производит рассылку данных и сбор частичных результатов. Используется синхронизация через `MPI_Barrier`.
->>>>>>> upstream/master
 
 ---
 
@@ -130,11 +119,7 @@ MPI-реализация опеределяет количество столб�
 
 ## Выводы из результатов
 
-<<<<<<< HEAD
-Реализация с использованием MPI показывает ускорение примерно в **2.8 раза** по сравнению с последовательной версией.  
-=======
 Реализация с использованием MPI показывает ускорение примерно в **2.8 раза** по сравнению с последовательной версией запуске на локальном устройстве.  
->>>>>>> upstream/master
 Это демонстрирует эффективность параллельного подхода при работе с крупными матрицами.  
 При увеличении числа процессов можно ожидать дальнейшего сокращения времени выполнения, однако при малых размерах матриц затраты на коммуникацию могут нивелировать прирост производительности.
 
@@ -158,86 +143,6 @@ MPI-реализация опеределяет количество столб�
 ### Параллельная реализация
 
 ```cpp
-<<<<<<< HEAD
-bool ZagryadskovMMaxByColumnMPI::RunImpl() {
-  bool ifDividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  bool testData = (std::get<0>(GetInput()) > 0) && (std::get<1>(GetInput()).size() > 0) && ifDividable;
-  if (!testData) {
-    return false;
-  }
-
-  int world_size = 0, world_rank = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  const auto &n = std::get<0>(GetInput());
-  const auto &mat = std::get<1>(GetInput());
-  size_t m = mat.size() / n;
-  OutType &res = GetOutput();
-  OutType local_res;
-  OutType columns;
-  int columns_count = int(n) / world_size;
-  int columns_size = columns_count * int(m);
-  using T = std::decay_t<decltype(*mat.begin())>;
-  MPI_Datatype datatype;
-  if (std::is_same<T, char>::value) {
-    datatype = MPI_CHAR;
-  } else if (std::is_same<T, unsigned char>::value) {
-    datatype = MPI_UNSIGNED_CHAR;
-  } else if (std::is_same<T, short>::value) {
-    datatype = MPI_SHORT;
-  } else if (std::is_same<T, unsigned short>::value) {
-    datatype = MPI_UNSIGNED_SHORT;
-  } else if (std::is_same<T, int>::value) {
-    datatype = MPI_INT;
-  } else if (std::is_same<T, unsigned>::value) {
-    datatype = MPI_UNSIGNED;
-  } else if (std::is_same<T, long>::value) {
-    datatype = MPI_LONG;
-  } else if (std::is_same<T, unsigned long>::value) {
-    datatype = MPI_UNSIGNED_LONG;
-  } else if (std::is_same<T, long long>::value) {
-    datatype = MPI_LONG_LONG;
-  } else if (std::is_same<T, float>::value) {
-    datatype = MPI_FLOAT;
-  } else if (std::is_same<T, double>::value) {
-    datatype = MPI_DOUBLE;
-  } else {
-    return false;
-  }
-
-  columns.resize(columns_size);
-
-  res.resize(n, std::numeric_limits<T>::lowest());
-  local_res.resize(columns_count, std::numeric_limits<T>::lowest());
-  MPI_Scatter(mat.data(), columns_size, datatype, columns.data(), columns_size, datatype, 0, MPI_COMM_WORLD);
-
-  size_t i, j;
-  T tmp;
-  int tmpFlag;
-  for (j = 0; j < size_t(columns_count); ++j) {
-    for (i = 0; i < m; ++i) {
-      tmp = columns[j * m + i];
-      tmpFlag = tmp > local_res[j];
-      local_res[j] = tmpFlag * tmp + (!tmpFlag) * local_res[j];
-    }
-  }
-  MPI_Gather(local_res.data(), columns_count, datatype, res.data(), columns_count, datatype, 0, MPI_COMM_WORLD);
-  if (world_rank == 0) {
-    for (j = size_t(columns_count * world_size); j < n; ++j) {
-      for (i = 0; i < m; ++i) {
-        tmp = mat[j * m + i];
-        tmpFlag = tmp > res[j];
-        res[j] = tmpFlag * tmp + (!tmpFlag) * res[j];
-      }
-    }
-  }
-
-  MPI_Bcast(res.data(), res.size(), datatype, 0, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
-  return GetOutput().size() > 0;
-}
-```
-=======
 int world_size = 0;
   int world_rank = 0;
   int err_code = 0;
@@ -344,4 +249,3 @@ int world_size = 0;
   }
   return result;
 ```
->>>>>>> upstream/master

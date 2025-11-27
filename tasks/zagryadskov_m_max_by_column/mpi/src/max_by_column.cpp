@@ -4,11 +4,7 @@
 
 #include <cstddef>
 #include <limits>
-<<<<<<< HEAD
-#include <type_traits>
-=======
 #include <stdexcept>
->>>>>>> upstream/master
 #include <utility>
 #include <vector>
 
@@ -18,15 +14,6 @@ namespace zagryadskov_m_max_by_column {
 
 ZagryadskovMMaxByColumnMPI::ZagryadskovMMaxByColumnMPI(const InType &in) {
   SetTypeOfTask(GetStaticTypeOfTask());
-<<<<<<< HEAD
-  GetInput() = in;
-}
-
-bool ZagryadskovMMaxByColumnMPI::ValidationImpl() {
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  bool res =
-      (std::get<0>(GetInput()) > 0) && (!std::get<1>(GetInput()).empty()) && (GetOutput().empty()) && if_dividable;
-=======
   int world_rank = 0;
   int err_code = 0;
   err_code = MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
@@ -55,32 +42,10 @@ bool ZagryadskovMMaxByColumnMPI::ValidationImpl() {
   } else {
     res = true;
   }
->>>>>>> upstream/master
   return res;
 }
 
 bool ZagryadskovMMaxByColumnMPI::PreProcessingImpl() {
-<<<<<<< HEAD
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  bool res = (std::get<0>(GetInput()) > 0) && (!std::get<1>(GetInput()).empty()) && if_dividable;
-  return res;
-}
-
-bool ZagryadskovMMaxByColumnMPI::RunImpl() {
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  bool test_data = (std::get<0>(GetInput()) > 0) && (!std::get<1>(GetInput()).empty()) && if_dividable;
-  if (!test_data) {
-    return false;
-  }
-
-  int world_size = 0;
-  int world_rank = 0;
-  MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-  MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-  const auto &n = std::get<0>(GetInput());
-  const auto &mat = std::get<1>(GetInput());
-  size_t m = mat.size() / n;
-=======
   return true;
 }
 
@@ -138,7 +103,6 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   int n = 0;
   const void *mat_data = nullptr;
   int m = 0;
->>>>>>> upstream/master
   OutType &res = GetOutput();
   OutType local_res;
   OutType columns;
@@ -147,17 +111,6 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
   if (!displs.empty()) {
     displs[0] = 0;
   }
-<<<<<<< HEAD
-  int columns_count = static_cast<int>(n) / world_size;
-  using T = std::decay_t<decltype(*mat.begin())>;
-  MPI_Datatype datatype = GetMpiType<T>();
-  if (datatype == MPI_DATATYPE_NULL) {
-    return false;
-  }
-
-  size_t i = 0;
-  size_t j = 0;
-=======
 
   if (world_rank == 0) {
     n = static_cast<int>(std::get<0>(GetInput()));
@@ -180,36 +133,19 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
 
   int i = 0;
   int j = 0;
->>>>>>> upstream/master
   int r = 0;
   T tmp = std::numeric_limits<T>::lowest();
   bool tmp_flag = false;
 
-<<<<<<< HEAD
-  res.assign(n, std::numeric_limits<T>::lowest());
-  for (r = 0; r < world_size; ++r) {
-    sendcounts[r] = (columns_count + static_cast<int>(r < (static_cast<int>(n) % world_size))) * static_cast<int>(m);
-=======
   if (world_rank == 0) {
     res.assign(n, std::numeric_limits<T>::lowest());
   }
   for (r = 0; r < world_size; ++r) {
     sendcounts[r] = (columns_count + static_cast<int>(r < (n % world_size))) * m;
->>>>>>> upstream/master
     if (r > 0) {
       displs[r] = displs[r - 1] + sendcounts[r - 1];
     }
   }
-<<<<<<< HEAD
-  local_res.assign(static_cast<size_t>(sendcounts[world_rank]) / m, std::numeric_limits<T>::lowest());
-  columns.resize(sendcounts[world_rank]);
-  if (world_rank == 0) {
-    MPI_Scatterv(mat.data(), sendcounts.data(), displs.data(), datatype, columns.data(), sendcounts[world_rank],
-                 datatype, 0, MPI_COMM_WORLD);
-  } else {
-    MPI_Scatterv(nullptr, sendcounts.data(), displs.data(), datatype, columns.data(), sendcounts[world_rank], datatype,
-                 0, MPI_COMM_WORLD);
-=======
 
   local_res.assign(static_cast<size_t>(sendcounts[world_rank] / m), std::numeric_limits<T>::lowest());
   columns.resize(sendcounts[world_rank]);
@@ -217,7 +153,6 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
                           datatype, 0, MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {
     throw std::runtime_error("MPI_Scatterv failed");
->>>>>>> upstream/master
   }
   for (j = 0; std::cmp_less(j, local_res.size()); ++j) {
     for (i = 0; i < m; ++i) {
@@ -226,29 +161,6 @@ bool ZagryadskovMMaxByColumnMPI::RunImpl() {
       local_res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * local_res[j]);
     }
   }
-<<<<<<< HEAD
-  for (r = 0; r < world_size; ++r) {
-    sendcounts[r] /= static_cast<int>(m);
-    if (r > 0) {
-      displs[r] = displs[r - 1] + sendcounts[r - 1];
-    }
-  }
-  if (world_rank == 0) {
-    MPI_Gatherv(local_res.data(), static_cast<int>(local_res.size()), datatype, res.data(), sendcounts.data(),
-                displs.data(), datatype, 0, MPI_COMM_WORLD);
-  } else {
-    MPI_Gatherv(local_res.data(), static_cast<int>(local_res.size()), datatype, nullptr, sendcounts.data(),
-                displs.data(), datatype, 0, MPI_COMM_WORLD);
-  }
-
-  MPI_Bcast(res.data(), static_cast<int>(res.size()), datatype, 0, MPI_COMM_WORLD);
-  MPI_Barrier(MPI_COMM_WORLD);
-  return !GetOutput().empty();
-}
-
-bool ZagryadskovMMaxByColumnMPI::PostProcessingImpl() {
-  return !GetOutput().empty();
-=======
 
   return SecondPhase(m, n, world_size, world_rank, sendcounts, displs, res, local_res, datatype);
 }
@@ -263,7 +175,6 @@ bool ZagryadskovMMaxByColumnMPI::PostProcessingImpl() {
     result = true;
   }
   return result;
->>>>>>> upstream/master
 }
 
 }  // namespace zagryadskov_m_max_by_column

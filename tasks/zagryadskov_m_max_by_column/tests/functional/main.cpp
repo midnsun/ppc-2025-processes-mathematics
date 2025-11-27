@@ -1,20 +1,13 @@
 #include <gtest/gtest.h>
 
-<<<<<<< HEAD
-#include <array>
-=======
 #include <algorithm>
 #include <array>
 #include <cmath>
->>>>>>> upstream/master
 #include <cstddef>
 #include <fstream>
 #include <ios>
 #include <iosfwd>
-<<<<<<< HEAD
-=======
 #include <limits>
->>>>>>> upstream/master
 #include <stdexcept>
 #include <string>
 #include <tuple>
@@ -68,13 +61,6 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
       return res;
     }
 
-<<<<<<< HEAD
-    for (size_t j = 0; j < n; ++j) {
-      for (size_t i = 0; i < m; ++i) {
-        if (output_data[j] < mat[(j * m) + i]) {
-          res = false;
-        }
-=======
     using T = std::decay_t<decltype(*mat.begin())>;
     OutType example(n, std::numeric_limits<T>::lowest());
     for (size_t j = 0; j < n; ++j) {
@@ -88,7 +74,6 @@ class ZagryadskovMRunFuncTestsMaxByColumn : public ppc::util::BaseRunFuncTests<I
       T eps = std::max(std::abs(example[j]), std::abs(output_data[j])) * std::numeric_limits<double>::epsilon();
       if (diff > eps) {
         res = false;
->>>>>>> upstream/master
       }
     }
 
