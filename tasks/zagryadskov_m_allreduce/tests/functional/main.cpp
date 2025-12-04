@@ -37,7 +37,7 @@ class ZagryadskovMRunFuncTestsAllreduce : public ppc::util::BaseRunFuncTests<InT
     std::uniform_int_distribution<int> gen(-100, 100);
     int op = 0;
     int count = 25 + params * 1'000'000;
-    int processes = 8;  // Что то надо сделать!!
+    int processes = 8;
 
     std::get<1>(input_data_) = count;
     std::get<2>(input_data_) = op;

@@ -3,6 +3,7 @@
 #include <mpi.h>
 
 #include <cstddef>
+#include <cstring>
 #include <limits>
 #include <stdexcept>
 #include <utility>
@@ -44,7 +45,7 @@ bool ZagryadskovMAllreduceMPI::ValidationImpl() {
     int param2 = std::get<1>(GetInput());
     int param3 = std::get<2>(GetInput());
 
-    res = (!param1.empty()) && (param3 >= 0) && (param3 <= 1) && (param2 > 0) &&
+    res = (!param1.empty()) && (param3 >= 0) && (param3 <= 2) && (param2 > 0) &&
           (param1.size() >= static_cast<size_t>(param2 * world_size));
   } else {
     res = true;
@@ -83,10 +84,71 @@ bool ZagryadskovMAllreduceMPI::PreProcessingImpl() {
   return true;
 }
 
+void ZagryadskovMAllreduceMPI::apply_op(void *recvbuf, const void *tempbuf, int count, MPI_Datatype type, MPI_Op op,
+                                        MPI_Comm comm) {
+  if (type == MPI_INT) {
+    apply_op<int>(recvbuf, tempbuf, count, op, comm);
+  } else if (type == MPI_DOUBLE) {
+    apply_op<double>(recvbuf, tempbuf, count, op, comm);
+  } else if (type == MPI_FLOAT) {
+    apply_op<float>(recvbuf, tempbuf, count, op, comm);
+  } else {
+    MPI_Abort(comm, 1);
+  }
+}
+
 int ZagryadskovMAllreduceMPI::myAllreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
                                           MPI_Op op, MPI_Comm comm) {
-  int retval = MPI_Allreduce(sendbuf, recvbuf, count, datatype, op, comm);
-  return retval;
+  int rank, size;
+  MPI_Comm_rank(comm, &rank);
+  MPI_Comm_size(comm, &size);
+
+  int type_size;
+  MPI_Type_size(datatype, &type_size);
+  void *tempbuf = malloc(count * type_size);
+
+  memcpy(recvbuf, sendbuf, count * type_size);
+
+  int p2 = 1;
+  while (p2 << 1 <= size) {
+    p2 <<= 1;
+  }
+
+  if (rank >= p2) {
+    int partner = rank - p2;
+
+    MPI_Send(recvbuf, count, datatype, partner, 0, comm);
+    MPI_Recv(recvbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
+
+    free(tempbuf);
+    return MPI_SUCCESS;
+  }
+
+  if (rank + p2 < size) {
+    int partner = rank + p2;
+    MPI_Recv(tempbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
+    apply_op(recvbuf, tempbuf, count, datatype, op, comm);
+  }
+
+  for (int step = 0; (1 << step) < p2; step++) {
+    int partner = rank ^ (1 << step);
+
+    MPI_Request request;
+    MPI_Status status;
+    MPI_Isend(recvbuf, count, datatype, partner, 0, comm, &request);
+    MPI_Recv(tempbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
+    MPI_Wait(&request, &status);
+
+    apply_op(recvbuf, tempbuf, count, datatype, op, comm);
+  }
+
+  if (rank + p2 < size) {
+    int partner = rank + p2;
+    MPI_Send(recvbuf, count, datatype, partner, 0, comm);
+  }
+
+  free(tempbuf);
+  return MPI_SUCCESS;
 }
 
 bool ZagryadskovMAllreduceMPI::RunImpl() {

@@ -41,7 +41,7 @@ bool ZagryadskovMAllreduceSEQ::ValidationImpl() {
     int param2 = std::get<1>(GetInput());
     int param3 = std::get<2>(GetInput());
 
-    res = (!param1.empty()) && (param3 >= 0) && (param3 <= 1) && (param2 > 0) &&
+    res = (!param1.empty()) && (param3 >= 0) && (param3 <= 2) && (param2 > 0) &&
           (param1.size() >= static_cast<size_t>(param2 * world_size));
   } else {
     res = true;
