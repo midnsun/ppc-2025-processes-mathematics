@@ -104,8 +104,9 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
 
   int type_size = 0;
   MPI_Type_size(datatype, &type_size);
-  std::vector<char> container_buf(static_cast<size_t>(count * type_size));
-  void *tempbuf = reinterpret_cast<void *>(container_buf.data());
+  // std::vector<char> container_buf(static_cast<size_t>(count * type_size));
+  // void *tempbuf = reinterpret_cast<void *>(container_buf.data());
+  void *tempbuf = malloc(static_cast<size_t>(count * type_size));
 
   memcpy(recvbuf, sendbuf, static_cast<size_t>(count * type_size));
 
