@@ -4,9 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
-#include <limits>
 #include <stdexcept>
-#include <utility>
 #include <vector>
 
 #include "zagryadskov_m_allreduce/common/include/common.hpp"
@@ -69,10 +67,10 @@ bool ZagryadskovMAllreduceMPI::PreProcessingImpl() {
   if (err_code != MPI_SUCCESS) {
     throw std::runtime_error("MPI_Bcast failed");
   }
-  temp_vec.resize(count);
+  temp_vec_.resize(count);
 
   err_code =
-      MPI_Scatter(std::get<0>(GetInput()).data(), count, MPI_INT, temp_vec.data(), count, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Scatter(std::get<0>(GetInput()).data(), count, MPI_INT, temp_vec_.data(), count, MPI_INT, 0, MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {
     throw std::runtime_error("MPI_Scatter failed");
   }
@@ -84,30 +82,32 @@ bool ZagryadskovMAllreduceMPI::PreProcessingImpl() {
   return true;
 }
 
-void ZagryadskovMAllreduceMPI::apply_op(void *recvbuf, const void *tempbuf, int count, MPI_Datatype type, MPI_Op op,
-                                        MPI_Comm comm) {
+void ZagryadskovMAllreduceMPI::ApplyOp(void *recvbuf, const void *tempbuf, int count, MPI_Datatype type, MPI_Op op,
+                                       MPI_Comm comm) {
   if (type == MPI_INT) {
-    apply_op<int>(recvbuf, tempbuf, count, op, comm);
+    ApplyOp<int>(recvbuf, tempbuf, count, op, comm);
   } else if (type == MPI_DOUBLE) {
-    apply_op<double>(recvbuf, tempbuf, count, op, comm);
+    ApplyOp<double>(recvbuf, tempbuf, count, op, comm);
   } else if (type == MPI_FLOAT) {
-    apply_op<float>(recvbuf, tempbuf, count, op, comm);
+    ApplyOp<float>(recvbuf, tempbuf, count, op, comm);
   } else {
     MPI_Abort(comm, 1);
   }
 }
 
-int ZagryadskovMAllreduceMPI::myAllreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
+int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype,
                                           MPI_Op op, MPI_Comm comm) {
-  int rank, size;
+  int rank = 0;
+  int size = 0;
   MPI_Comm_rank(comm, &rank);
   MPI_Comm_size(comm, &size);
 
-  int type_size;
+  int type_size = 0;
   MPI_Type_size(datatype, &type_size);
-  void *tempbuf = malloc(count * type_size);
+  std::vector<char> container_buf(static_cast<size_t>(count * type_size));
+  void *tempbuf = reinterpret_cast<void *>(container_buf.data());
 
-  memcpy(recvbuf, sendbuf, count * type_size);
+  memcpy(recvbuf, sendbuf, static_cast<size_t>(count * type_size));
 
   int p2 = 1;
   while (p2 << 1 <= size) {
@@ -127,19 +127,19 @@ int ZagryadskovMAllreduceMPI::myAllreduce(const void *sendbuf, void *recvbuf, in
   if (rank + p2 < size) {
     int partner = rank + p2;
     MPI_Recv(tempbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
-    apply_op(recvbuf, tempbuf, count, datatype, op, comm);
+    ApplyOp(recvbuf, tempbuf, count, datatype, op, comm);
   }
 
   for (int step = 0; (1 << step) < p2; step++) {
     int partner = rank ^ (1 << step);
 
-    MPI_Request request;
+    MPI_Request request = nullptr;
     MPI_Status status;
     MPI_Isend(recvbuf, count, datatype, partner, 0, comm, &request);
     MPI_Recv(tempbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
     MPI_Wait(&request, &status);
 
-    apply_op(recvbuf, tempbuf, count, datatype, op, comm);
+    ApplyOp(recvbuf, tempbuf, count, datatype, op, comm);
   }
 
   if (rank + p2 < size) {
@@ -147,7 +147,6 @@ int ZagryadskovMAllreduceMPI::myAllreduce(const void *sendbuf, void *recvbuf, in
     MPI_Send(recvbuf, count, datatype, partner, 0, comm);
   }
 
-  free(tempbuf);
   return MPI_SUCCESS;
 }
 
@@ -172,9 +171,9 @@ bool ZagryadskovMAllreduceMPI::RunImpl() {
     throw std::runtime_error("MPI_Bcast failed");
   }
 
-  GetOutput().resize(temp_vec.size());
-  MPI_Op op = ZagryadskovMAllreduceSEQ::getOp(iop);
-  ZagryadskovMAllreduceMPI::myAllreduce(temp_vec.data(), GetOutput().data(), temp_vec.size(), MPI_INT, op,
+  GetOutput().resize(temp_vec_.size());
+  MPI_Op op = ZagryadskovMAllreduceSEQ::GetOp(iop);
+  ZagryadskovMAllreduceMPI::MyAllreduce(temp_vec_.data(), GetOutput().data(), temp_vec_.size(), MPI_INT, op,
                                         MPI_COMM_WORLD);
 
   err_code = MPI_Barrier(MPI_COMM_WORLD);

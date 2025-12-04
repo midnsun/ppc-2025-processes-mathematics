@@ -3,7 +3,7 @@
 #include <mpi.h>
 
 #include <cstddef>
-#include <limits>
+#include <stdexcept>
 #include <type_traits>
 
 #include "zagryadskov_m_allreduce/common/include/common.hpp"
@@ -65,10 +65,10 @@ bool ZagryadskovMAllreduceSEQ::PreProcessingImpl() {
   if (err_code != MPI_SUCCESS) {
     throw std::runtime_error("MPI_Bcast failed");
   }
-  temp_vec.resize(count);
+  temp_vec_.resize(count);
 
   err_code =
-      MPI_Scatter(std::get<0>(GetInput()).data(), count, MPI_INT, temp_vec.data(), count, MPI_INT, 0, MPI_COMM_WORLD);
+      MPI_Scatter(std::get<0>(GetInput()).data(), count, MPI_INT, temp_vec_.data(), count, MPI_INT, 0, MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {
     throw std::runtime_error("MPI_Scatter failed");
   }
@@ -80,7 +80,7 @@ bool ZagryadskovMAllreduceSEQ::PreProcessingImpl() {
   return true;
 }
 
-MPI_Op ZagryadskovMAllreduceSEQ::getOp(int iop) {
+MPI_Op ZagryadskovMAllreduceSEQ::GetOp(int iop) {
   MPI_Op op = MPI_OP_NULL;
   switch (iop) {
     case 0:
@@ -88,6 +88,9 @@ MPI_Op ZagryadskovMAllreduceSEQ::getOp(int iop) {
       break;
     case 1:
       op = MPI_MIN;
+      break;
+    case 2:
+      op = MPI_SUM;
       break;
     default:
       op = MPI_OP_NULL;
@@ -118,9 +121,9 @@ bool ZagryadskovMAllreduceSEQ::RunImpl() {
     throw std::runtime_error("MPI_Bcast failed");
   }
 
-  GetOutput().resize(temp_vec.size());
-  MPI_Op op = ZagryadskovMAllreduceSEQ::getOp(iop);
-  MPI_Allreduce(temp_vec.data(), GetOutput().data(), temp_vec.size(), MPI_INT, op, MPI_COMM_WORLD);
+  GetOutput().resize(temp_vec_.size());
+  MPI_Op op = ZagryadskovMAllreduceSEQ::GetOp(iop);
+  MPI_Allreduce(temp_vec_.data(), GetOutput().data(), temp_vec_.size(), MPI_INT, op, MPI_COMM_WORLD);
 
   err_code = MPI_Barrier(MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {

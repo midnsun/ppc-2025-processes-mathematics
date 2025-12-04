@@ -17,14 +17,14 @@ class ZagryadskovMAllreduceSEQ : public BaseTask {
   explicit ZagryadskovMAllreduceSEQ(const InType &in);
 
  private:
-  OutType temp_vec;
+  OutType temp_vec_;
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
 
  public:
-  static MPI_Op getOp(int iop);
+  static MPI_Op GetOp(int iop);
 };
 
 }  // namespace zagryadskov_m_allreduce
