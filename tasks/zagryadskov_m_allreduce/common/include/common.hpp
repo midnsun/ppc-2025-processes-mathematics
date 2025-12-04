@@ -9,9 +9,9 @@
 
 namespace zagryadskov_m_allreduce {
 
-using InType = std::tuple<size_t, std::vector<double>>;
-using OutType = std::vector<double>;
-using TestType = std::string;
+using InType = std::tuple<std::vector<int>, int, int>;  // data, count of data for each processes, operation
+using OutType = std::vector<int>;                       // vector on each process
+using TestType = int;                                   // probably seed ot smth. Count of processes?
 using BaseTask = ppc::task::Task<InType, OutType>;
 
 }  // namespace zagryadskov_m_allreduce

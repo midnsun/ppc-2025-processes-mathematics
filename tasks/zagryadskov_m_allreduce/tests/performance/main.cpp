@@ -7,6 +7,7 @@
 #include <ios>
 #include <iosfwd>
 #include <limits>
+#include <random>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
@@ -23,50 +24,32 @@ class ZagryadskovMRunPerfTestAllreduce : public ppc::util::BaseRunPerfTests<InTy
   InType input_data_;
 
   void SetUp() override {
-    std::string in_file_name = "mat1.bin";
-    std::string abs_path =
-        ppc::util::GetAbsoluteTaskPath(PPC_ID_zagryadskov_m_allreduce,
-                                       in_file_name);  // std::string abs_path = "../../data/mat1.bin";
-    std::ifstream in_file_stream(abs_path, std::ios::in | std::ios::binary);
-    if (!in_file_stream.is_open()) {
-      throw std::runtime_error("Error opening file!\n");
+    TestType params = 1;
+    int seed = params;
+    std::mt19937 e(seed);
+    std::uniform_int_distribution<int> gen(-100, 100);
+    int op = 0;
+    int count = 25 + params * 50'000'000;
+    int processes = 4;
+
+    std::get<1>(input_data_) = count;
+    std::get<2>(input_data_) = op;
+    auto &data_vec = std::get<0>(input_data_);
+    data_vec.resize(count * processes);
+
+    for (int i = 0; i < count * processes; ++i) {
+      data_vec[i] = gen(e);
     }
-    size_t m = 0;
-    size_t n = 0;
-    in_file_stream.read(reinterpret_cast<char *>(&m), sizeof(size_t));
-    in_file_stream.read(reinterpret_cast<char *>(&n), sizeof(size_t));
-    std::get<0>(input_data_) = n;
-    auto &mat = std::get<1>(input_data_);
-    mat.resize(m * n);
-    using T = std::decay_t<decltype(*mat.begin())>;
-
-    in_file_stream.read(reinterpret_cast<char *>(mat.data()), static_cast<std::streamsize>(sizeof(T) * m * n));
-
-    in_file_stream.close();
   }
 
   bool CheckTestOutputData(OutType &output_data) final {
     bool res = true;
-    size_t n = std::get<0>(input_data_);
-    size_t m = std::get<1>(input_data_).size() / n;
-    auto &mat = std::get<1>(input_data_);
-    if (output_data.size() != n) {
-      res = false;
-      return res;
-    }
+    OutType example(output_data.size());
+    ZagryadskovMAllreduceSEQ::SeqAllreduce<int>(std::get<0>(input_data_).data(), example.data(),
+                                                std::get<1>(input_data_), std::get<2>(input_data_));
 
-    using T = std::decay_t<decltype(*mat.begin())>;
-    OutType example(n, std::numeric_limits<T>::lowest());
-    for (size_t j = 0; j < n; ++j) {
-      for (size_t i = 0; i < m; ++i) {
-        example[j] = std::max(example[j], mat[(j * m) + i]);
-      }
-    }
-
-    for (size_t j = 0; j < n; ++j) {
-      T diff = std::abs(example[j] - output_data[j]);
-      T eps = std::max(std::abs(example[j]), std::abs(output_data[j])) * std::numeric_limits<double>::epsilon();
-      if (diff > eps) {
+    for (size_t i = 0; i < output_data.size(); ++i) {
+      if (output_data[i] != example[i]) {
         res = false;
       }
     }

@@ -17,12 +17,14 @@ class ZagryadskovMAllreduceMPI : public BaseTask {
   explicit ZagryadskovMAllreduceMPI(const InType &in);
 
  private:
+  OutType temp_vec;
   bool ValidationImpl() override;
   bool PreProcessingImpl() override;
   bool RunImpl() override;
   bool PostProcessingImpl() override;
-  static bool SecondPhase(int m, int n, int world_size, int world_rank, std::vector<int> &sendcounts,
-                          std::vector<int> &displs, OutType &res, OutType &local_res, MPI_Datatype datatype);
+  static int myAllreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
+                         MPI_Comm comm);
+  static MPI_Op getOp(int iop);
 };
 
 }  // namespace zagryadskov_m_allreduce

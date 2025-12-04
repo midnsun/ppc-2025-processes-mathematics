@@ -14,46 +14,28 @@ ZagryadskovMAllreduceSEQ::ZagryadskovMAllreduceSEQ(const InType &in) {
 }
 
 bool ZagryadskovMAllreduceSEQ::ValidationImpl() {
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  return (std::get<0>(GetInput()) > 0) && (!std::get<1>(GetInput()).empty()) && (GetOutput().empty()) && if_dividable;
+  auto &param1 = std::get<0>(GetInput());
+  int param2 = std::get<1>(GetInput());
+  int param3 = std::get<2>(GetInput());
+
+  bool res = (!param1.empty()) && (param3 >= 0) && (param3 <= 1) && (param2 > 0) &&
+             (param1.size() >= static_cast<size_t>(param2));
+  return res;
 }
 
 bool ZagryadskovMAllreduceSEQ::PreProcessingImpl() {
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  return (std::get<0>(GetInput()) > 0) && (!std::get<1>(GetInput()).empty()) && if_dividable;
+  return true;
 }
 
 bool ZagryadskovMAllreduceSEQ::RunImpl() {
-  bool if_dividable = std::get<1>(GetInput()).size() % std::get<0>(GetInput()) == 0;
-  if ((std::get<0>(GetInput()) == 0) || (std::get<1>(GetInput()).empty()) || !if_dividable) {
-    return false;
-  }
-
-  const auto &n = std::get<0>(GetInput());
-  const auto &mat = std::get<1>(GetInput());
-  size_t m = mat.size() / n;
-  OutType &res = GetOutput();
-  OutType rows;
-  using T = std::decay_t<decltype(*mat.begin())>;
-
-  size_t j = 0;
-  size_t i = 0;
-  res.resize(n, std::numeric_limits<T>::lowest());
-  T tmp = std::numeric_limits<T>::lowest();
-  bool tmp_flag = false;
-  for (j = 0; j < n; ++j) {
-    for (i = 0; i < m; ++i) {
-      tmp = mat[(j * m) + i];
-      tmp_flag = tmp > res[j];
-      res[j] = (static_cast<T>(tmp_flag) * tmp) + (static_cast<T>(!tmp_flag) * res[j]);
-    }
-  }
-
-  return !GetOutput().empty();
+  ZagryadskovMAllreduceSEQ::SeqAllreduce<int>(std::get<0>(GetInput()).data(), GetOutput().data(),
+                                              std::get<1>(GetInput()), std::get<2>(GetInput()));
+  return true;
 }
 
 bool ZagryadskovMAllreduceSEQ::PostProcessingImpl() {
-  return !GetOutput().empty();
+  bool res = !GetOutput().empty();
+  return res;
 }
 
 }  // namespace zagryadskov_m_allreduce
