@@ -174,8 +174,8 @@ bool ZagryadskovMAllreduceMPI::RunImpl() {
 
   GetOutput().resize(temp_vec_.size());
   MPI_Op op = ZagryadskovMAllreduceSEQ::GetOp(iop);
-  ZagryadskovMAllreduceMPI::MyAllreduce(temp_vec_.data(), GetOutput().data(), static_cast<int>(temp_vec_.size()), MPI_INT, op,
-                                        MPI_COMM_WORLD);
+  ZagryadskovMAllreduceMPI::MyAllreduce(temp_vec_.data(), GetOutput().data(), static_cast<int>(temp_vec_.size()),
+                                        MPI_INT, op, MPI_COMM_WORLD);
 
   err_code = MPI_Barrier(MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {
