@@ -133,11 +133,10 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
   for (int step = 0; (1 << step) < p2; step++) {
     int partner = rank ^ (1 << step);
 
-    MPI_Request request = nullptr;
-    MPI_Status status;
+    MPI_Request request = MPI_REQUEST_NULL;
     MPI_Isend(recvbuf, count, datatype, partner, 0, comm, &request);
     MPI_Recv(tempbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
-    MPI_Wait(&request, &status);
+    MPI_Wait(&request, MPI_STATUS_IGNORE);
 
     ApplyOp(recvbuf, tempbuf, count, datatype, op, comm);
   }
