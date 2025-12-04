@@ -44,7 +44,7 @@ bool ZagryadskovMAllreduceMPI::ValidationImpl() {
     int param3 = std::get<2>(GetInput());
 
     res = (!param1.empty()) && (param3 >= 0) && (param3 <= 2) && (param2 > 0) &&
-          (param1.size() >= static_cast<size_t>(param2 * world_size));
+          (param1.size() >= static_cast<size_t>(param2) * static_cast<size_t>(world_size));
   } else {
     res = true;
   }
@@ -106,9 +106,9 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
   MPI_Type_size(datatype, &type_size);
   // std::vector<char> container_buf(static_cast<size_t>(count * type_size));
   // void *tempbuf = reinterpret_cast<void *>(container_buf.data());
-  void *tempbuf = malloc(static_cast<size_t>(count * type_size));
+  void *tempbuf = malloc(static_cast<size_t>(count) * static_cast<size_t>(type_size));
 
-  memcpy(recvbuf, sendbuf, static_cast<size_t>(count * type_size));
+  memcpy(recvbuf, sendbuf, static_cast<size_t>(count) * static_cast<size_t>(type_size));
 
   int p2 = 1;
   while (p2 << 1 <= size) {
@@ -147,6 +147,7 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
     MPI_Send(recvbuf, count, datatype, partner, 0, comm);
   }
 
+  free(tempbuf);
   return MPI_SUCCESS;
 }
 

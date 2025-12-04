@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstddef>
 #include <random>
+#include <string>
 #include <tuple>
 #include <vector>
 
@@ -35,7 +36,7 @@ class ZagryadskovMRunFuncTestsAllreduce : public ppc::util::BaseRunFuncTests<InT
     std::get<1>(input_data_) = count;
     std::get<2>(input_data_) = op;
     auto &data_vec = std::get<0>(input_data_);
-    data_vec.resize(static_cast<size_t>(count * processes));
+    data_vec.resize(static_cast<size_t>(count) * static_cast<size_t>(processes));
 
     for (int i = 0; i < count * processes; ++i) {
       data_vec[i] = gen(e);

@@ -4,7 +4,6 @@
 
 #include <cstddef>
 #include <stdexcept>
-#include <type_traits>
 
 #include "zagryadskov_m_allreduce/common/include/common.hpp"
 
@@ -42,7 +41,7 @@ bool ZagryadskovMAllreduceSEQ::ValidationImpl() {
     int param3 = std::get<2>(GetInput());
 
     res = (!param1.empty()) && (param3 >= 0) && (param3 <= 2) && (param2 > 0) &&
-          (param1.size() >= static_cast<size_t>(param2 * world_size));
+          (param1.size() >= static_cast<size_t>(param2) * static_cast<size_t>(world_size));
   } else {
     res = true;
   }
@@ -123,7 +122,7 @@ bool ZagryadskovMAllreduceSEQ::RunImpl() {
 
   GetOutput().resize(temp_vec_.size());
   MPI_Op op = ZagryadskovMAllreduceSEQ::GetOp(iop);
-  MPI_Allreduce(temp_vec_.data(), GetOutput().data(), temp_vec_.size(), MPI_INT, op, MPI_COMM_WORLD);
+  MPI_Allreduce(temp_vec_.data(), GetOutput().data(), static_cast<int>(temp_vec_.size()), MPI_INT, op, MPI_COMM_WORLD);
 
   err_code = MPI_Barrier(MPI_COMM_WORLD);
   if (err_code != MPI_SUCCESS) {

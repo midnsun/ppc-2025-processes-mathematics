@@ -2,8 +2,6 @@
 
 #include <mpi.h>
 
-#include <algorithm>
-
 #include "task/include/task.hpp"
 #include "zagryadskov_m_allreduce/common/include/common.hpp"
 
