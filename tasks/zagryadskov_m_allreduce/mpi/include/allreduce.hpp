@@ -24,7 +24,6 @@ class ZagryadskovMAllreduceMPI : public BaseTask {
   bool PostProcessingImpl() override;
   static int myAllreduce(const void *sendbuf, void *recvbuf, int count, MPI_Datatype datatype, MPI_Op op,
                          MPI_Comm comm);
-  static MPI_Op getOp(int iop);
 };
 
 }  // namespace zagryadskov_m_allreduce

@@ -9,6 +9,7 @@
 #include <vector>
 
 #include "zagryadskov_m_allreduce/common/include/common.hpp"
+#include "zagryadskov_m_allreduce/seq/include/allreduce.hpp"
 
 namespace zagryadskov_m_allreduce {
 
@@ -88,23 +89,6 @@ int ZagryadskovMAllreduceMPI::myAllreduce(const void *sendbuf, void *recvbuf, in
   return retval;
 }
 
-MPI_Op ZagryadskovMAllreduceMPI::getOp(int iop) {
-  MPI_Op op = MPI_MAX;
-  switch (iop) {
-    case 0:
-      op = MPI_MAX;
-      break;
-    case 1:
-      op = MPI_MIN;
-      break;
-    default:
-      op = MPI_OP_NULL;
-      break;
-  }
-
-  return op;
-}
-
 bool ZagryadskovMAllreduceMPI::RunImpl() {
   int world_size = 0;
   int world_rank = 0;
@@ -127,7 +111,7 @@ bool ZagryadskovMAllreduceMPI::RunImpl() {
   }
 
   GetOutput().resize(temp_vec.size());
-  MPI_Op op = ZagryadskovMAllreduceMPI::getOp(iop);
+  MPI_Op op = ZagryadskovMAllreduceSEQ::getOp(iop);
   ZagryadskovMAllreduceMPI::myAllreduce(temp_vec.data(), GetOutput().data(), temp_vec.size(), MPI_INT, op,
                                         MPI_COMM_WORLD);
 

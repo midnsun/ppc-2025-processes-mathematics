@@ -36,8 +36,8 @@ class ZagryadskovMRunFuncTestsAllreduce : public ppc::util::BaseRunFuncTests<InT
     std::mt19937 e(seed);
     std::uniform_int_distribution<int> gen(-100, 100);
     int op = 0;
-    int count = 25 + params * 50'000'000;
-    int processes = 4;
+    int count = 25 + params * 1'000'000;
+    int processes = 8;  // Что то надо сделать!!
 
     std::get<1>(input_data_) = count;
     std::get<2>(input_data_) = op;
@@ -52,8 +52,12 @@ class ZagryadskovMRunFuncTestsAllreduce : public ppc::util::BaseRunFuncTests<InT
   bool CheckTestOutputData(OutType &output_data) final {
     bool res = true;
     OutType example(output_data.size());
-    ZagryadskovMAllreduceSEQ::SeqAllreduce<int>(std::get<0>(input_data_).data(), example.data(),
-                                                std::get<1>(input_data_), std::get<2>(input_data_));
+
+    int count = std::get<1>(input_data_);
+    std::vector<int> in_data(count);
+    MPI_Op op = ZagryadskovMAllreduceSEQ::getOp(std::get<2>(input_data_));
+    MPI_Scatter(std::get<0>(input_data_).data(), count, MPI_INT, in_data.data(), count, MPI_INT, 0, MPI_COMM_WORLD);
+    MPI_Allreduce(in_data.data(), example.data(), count, MPI_INT, op, MPI_COMM_WORLD);
 
     for (size_t i = 0; i < output_data.size(); ++i) {
       if (output_data[i] != example[i]) {
