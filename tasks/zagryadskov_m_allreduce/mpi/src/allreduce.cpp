@@ -106,7 +106,6 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
   MPI_Type_size(datatype, &type_size);
   std::vector<unsigned char> container_buf(static_cast<size_t>(count) * static_cast<size_t>(type_size));
   void *tempbuf = reinterpret_cast<void *>(container_buf.data());
-  // void *tempbuf = malloc(static_cast<size_t>(count) * static_cast<size_t>(type_size));
 
   memcpy(recvbuf, sendbuf, static_cast<size_t>(count) * static_cast<size_t>(type_size));
 
@@ -121,7 +120,6 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
     MPI_Send(recvbuf, count, datatype, partner, 0, comm);
     MPI_Recv(recvbuf, count, datatype, partner, 0, comm, MPI_STATUS_IGNORE);
 
-    free(tempbuf);
     return MPI_SUCCESS;
   }
 
@@ -147,7 +145,6 @@ int ZagryadskovMAllreduceMPI::MyAllreduce(const void *sendbuf, void *recvbuf, in
     MPI_Send(recvbuf, count, datatype, partner, 0, comm);
   }
 
-  // free(tempbuf);
   return MPI_SUCCESS;
 }
 
